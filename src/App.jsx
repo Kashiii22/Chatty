@@ -11,6 +11,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [typingStatus, setTypingStatus] = useState(false);
   const [readReceipts, setReadReceipts] = useState({});
+  const [replyTo, setReplyTo] = useState(null);
 
   const messageEndRef = useRef(null);
   const typingTimeout = useRef(null);
@@ -41,7 +42,6 @@ function App() {
           const customMessageId = data.customMessageId;
 
           if (customMessageId) {
-            // Send read receipt back
             const readReceiptMessage = {
               type: 1,
               message: "__read__",
@@ -53,7 +53,7 @@ function App() {
       });
     });
 
-    instance.on("tokenWillExpire", (zim, { second }) => {
+    instance.on("tokenWillExpire", () => {
       const newToken = selectedUser === "Kashish" ? tokenA : tokenB;
       zim.renewToken(newToken).catch(() => {});
     });
@@ -84,7 +84,7 @@ function App() {
 
     const toConversationID = selectedUser === "Kashish" ? "You" : "Kashish";
     const customMessageId = `${userInfo.userID}_${Date.now()}`;
-    const extendedData = JSON.stringify({ customMessageId });
+    const extendedData = JSON.stringify({ customMessageId, replyTo });
 
     const messageTextObj = {
       type: 1,
@@ -97,6 +97,7 @@ function App() {
         setMessages(prev => [...prev, message]);
         setReadReceipts(prev => ({ ...prev, [customMessageId]: "Sent" }));
         setMessageText("");
+        setReplyTo(null);
       })
       .catch(console.error);
   };
@@ -116,72 +117,51 @@ function App() {
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleReply = (msg) => {
+    setReplyTo({ message: msg.message, sender: msg.senderUserID });
   };
 
   return (
-    <div
-      className="w-full h-screen flex flex-col items-center justify-center p-4"
-      style={{
-        backgroundImage: `url(${bg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center"
-      }}
-    >
+    <div className="w-full h-screen flex flex-col items-center justify-center p-4" style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center" }}>
       <h1 className="text-white font-bold text-4xl mb-6 drop-shadow-lg">Chatty</h1>
 
       {!isLoggedIn ? (
-        <div className="backdrop-blur-md bg-white/10 border border-white/30 text-white p-6 rounded-2xl shadow-xl w-[300px] transition-transform hover:scale-105">
+        <div className="backdrop-blur-md bg-white/10 border border-white/30 text-white p-6 rounded-2xl shadow-xl w-[300px]">
           <h2 className="text-xl font-semibold mb-4 text-center">Login</h2>
           <label className="block mb-2 text-sm">Select User</label>
-          <select
-            value={selectedUser}
-            onChange={(e) => setSelectedUser(e.target.value)}
-            className="w-full mb-4 p-2 rounded-xl text-black border border-white/30 focus:outline-none"
-          >
+          <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full mb-4 p-2 rounded-xl text-black border border-white/30">
             <option value="Kashish">Kashish</option>
             <option value="You">You</option>
           </select>
-          <button
-            onClick={handleLogin}
-            className="w-full py-2 px-4 rounded bg-purple-500 hover:bg-purple-600 transition-colors text-white font-medium cursor-pointer"
-          >
-            Login
-          </button>
+          <button onClick={handleLogin} className="w-full py-2 px-4 rounded bg-purple-500 hover:bg-purple-600 text-white font-medium">Login</button>
         </div>
       ) : (
-        <div className="bg-white/20 backdrop-blur-lg w-full max-w-md h-[80vh] flex flex-col rounded-xl border border-white/30 shadow-xl overflow-hidden">
-          <h2 className="text-white text-lg font-semibold text-center p-2">
-            {userInfo.userName} chatting with {selectedUser === "Kashish" ? "You" : "Kashish"}
-          </h2>
+        <div className="bg-white/20 backdrop-blur-lg w-full max-w-md h-[80vh] flex flex-col rounded-xl border border-white/30 shadow-xl">
+          <h2 className="text-white text-lg font-semibold text-center p-2">{userInfo.userName} chatting with {selectedUser === "Kashish" ? "You" : "Kashish"}</h2>
+
           <div className="flex-1 overflow-y-auto p-4 text-black">
             {messages.map((msg, index) => {
               const isOwnMessage = msg.senderUserID === userInfo.userID;
               const data = msg.extendedData ? JSON.parse(msg.extendedData) : {};
               const customMessageId = data.customMessageId;
               const status = readReceipts[customMessageId] || "";
-              const tickColor = status === "Read" ? "text-white-500" : "text-white-400";
               const tickIcon = status === "Read" ? "✓✓" : "✓";
 
               return (
-                <div
-                  key={index}
-                  className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
-                >
-                  <div className={`px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${
-                    isOwnMessage
-                      ? "bg-blue-500 rounded-br-none"
-                      : "bg-gray-600 rounded-bl-none"
-                  }`}>
+                <div key={index} className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`} onDoubleClick={() => handleReply(msg)}>
+                  <div className={`px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${isOwnMessage ? "bg-blue-500 rounded-br-none" : "bg-gray-600 rounded-bl-none"}`}>
+                    {data.replyTo && (
+                      <div className="text-xs text-gray-300 border-l-2 pl-2 mb-1 italic">
+                        Reply to {data.replyTo.sender}: {data.replyTo.message.slice(0, 30)}...
+                      </div>
+                    )}
                     <p>{msg.message}</p>
                     <p className="text-xs text-gray-200 mt-1 text-right flex justify-end items-center gap-1">
                       {formatTime(msg.timestamp)}
-                      {isOwnMessage && (
-                        <span className={`ml-2 text-xs ${tickColor}`}>{tickIcon}</span>
-                      )}
+                      {isOwnMessage && <span className="ml-2 text-xs">{tickIcon}</span>}
                     </p>
                   </div>
                 </div>
@@ -190,13 +170,22 @@ function App() {
 
             {typingStatus && (
               <div className="mb-3 flex justify-start">
-                <div className="px-4 py-2 rounded-xl max-w-[75%] bg-gray-500 text-white shadow-md rounded-bl-none animate-pulse">
+                <div className="px-4 py-2 rounded-xl max-w-[75%] bg-gray-500 text-white shadow-md animate-pulse">
                   <p className="italic">Typing...</p>
                 </div>
               </div>
             )}
             <div ref={messageEndRef}></div>
           </div>
+
+          {replyTo && (
+            <div className="bg-yellow-200 text-sm px-3 py-1 text-black flex justify-between items-center">
+              <div>
+                Replying to <strong>{replyTo.sender}</strong>: {replyTo.message.slice(0, 30)}...
+              </div>
+              <button className="text-red-500 font-bold ml-2" onClick={() => setReplyTo(null)}>x</button>
+            </div>
+          )}
 
           <div className="p-3 border-t bg-white/30 flex items-center backdrop-blur-md">
             <input
@@ -206,17 +195,19 @@ function App() {
                 setMessageText(e.target.value);
                 handleTyping();
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 mr-2 focus:outline-none"
               placeholder="Type your message..."
             />
             <button
               onClick={handleSendMessage}
               disabled={!messageText.trim()}
-              className={`px-4 py-2 rounded-lg text-white transition ${
-                messageText.trim()
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+              className={`px-4 py-2 rounded-lg text-white transition ${messageText.trim() ? "bg-blue-500 hover:bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
             >
               Send
             </button>
