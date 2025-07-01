@@ -23,26 +23,31 @@ function App() {
     const instance = ZIM.create(appId);
     setZimInstance(instance);
 
-    instance.on("error", (zim, errorInfo) => {
-      console.error("ZIM Error:", errorInfo);
-    });
-
-    instance.on("connectionStateChanged", (zim, { state, event }) => {
-      console.log("Connection state changed:", state, event);
-    });
-
     instance.on("peerMessageReceived", (zim, { messageList }) => {
       messageList.forEach((msg) => {
         if (msg.message === "__typing__") {
           setTypingStatus(true);
           if (typingTimeout.current) clearTimeout(typingTimeout.current);
           typingTimeout.current = setTimeout(() => setTypingStatus(false), 3000);
+        } else if (msg.message === "__read__" && msg.extendedData) {
+          const data = JSON.parse(msg.extendedData);
+          if (data.customMessageId) {
+            setReadReceipts(prev => ({ ...prev, [data.customMessageId]: "Read" }));
+          }
         } else {
+          setMessages(prev => [...prev, msg]);
+
           const data = msg.extendedData ? JSON.parse(msg.extendedData) : {};
           const customMessageId = data.customMessageId;
-          setMessages(prev => [...prev, msg]);
+
           if (customMessageId) {
-            setReadReceipts(prev => ({ ...prev, [customMessageId]: "Read" }));
+            // Send read receipt back
+            const readReceiptMessage = {
+              type: 1,
+              message: "__read__",
+              extendedData: JSON.stringify({ customMessageId }),
+            };
+            zim.sendMessage(readReceiptMessage, msg.senderUserID, 0, { priority: 1 }).catch(() => {});
           }
         }
       });
@@ -50,9 +55,7 @@ function App() {
 
     instance.on("tokenWillExpire", (zim, { second }) => {
       const newToken = selectedUser === "Kashish" ? tokenA : tokenB;
-      zim.renewToken(newToken)
-        .then(() => console.log("Token renewed"))
-        .catch(err => console.error("Token renew failed:", err));
+      zim.renewToken(newToken).catch(() => {});
     });
 
     return () => instance.destroy();
@@ -71,18 +74,13 @@ function App() {
 
     if (zimInstance) {
       zimInstance.login(info, loginToken)
-        .then(() => {
-          setIsLoggedIn(true);
-          console.log("✅ Logged in");
-        })
-        .catch(err => {
-          console.error("❌ Login failed:", err);
-        });
+        .then(() => setIsLoggedIn(true))
+        .catch(console.error);
     }
   };
 
   const handleSendMessage = () => {
-    if (!isLoggedIn || messageText.trim() === "") return;
+    if (!isLoggedIn || !messageText.trim()) return;
 
     const toConversationID = selectedUser === "Kashish" ? "You" : "Kashish";
     const customMessageId = `${userInfo.userID}_${Date.now()}`;
@@ -100,9 +98,7 @@ function App() {
         setReadReceipts(prev => ({ ...prev, [customMessageId]: "Sent" }));
         setMessageText("");
       })
-      .catch(err => {
-        console.error("Send message error:", err);
-      });
+      .catch(console.error);
   };
 
   const handleTyping = () => {
@@ -167,6 +163,8 @@ function App() {
               const data = msg.extendedData ? JSON.parse(msg.extendedData) : {};
               const customMessageId = data.customMessageId;
               const status = readReceipts[customMessageId] || "";
+              const tickColor = status === "Read" ? "text-white-500" : "text-white-400";
+              const tickIcon = status === "Read" ? "✓✓" : "✓";
 
               return (
                 <div
@@ -175,13 +173,15 @@ function App() {
                 >
                   <div className={`px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${
                     isOwnMessage
-                      ? "bg-blue-600 rounded-br-none"
-                      : "bg-gray-700 rounded-bl-none"
+                      ? "bg-blue-500 rounded-br-none"
+                      : "bg-gray-600 rounded-bl-none"
                   }`}>
                     <p>{msg.message}</p>
-                    <p className="text-xs text-gray-300 mt-1 text-right">
+                    <p className="text-xs text-gray-200 mt-1 text-right flex justify-end items-center gap-1">
                       {formatTime(msg.timestamp)}
-                      {isOwnMessage && <span className="ml-2">({status})</span>}
+                      {isOwnMessage && (
+                        <span className={`ml-2 text-xs ${tickColor}`}>{tickIcon}</span>
+                      )}
                     </p>
                   </div>
                 </div>
