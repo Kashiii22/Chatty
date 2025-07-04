@@ -17,8 +17,8 @@ function App() {
   const typingTimeout = useRef(null);
 
   const appId = 48774116;
-  const tokenA = "04AAAAAGhlZeMADPqNmxJ6rqWMnG9gigCvpL9hVwmYpbYR+lIRtRPNvP27F7slR+irhJ6MTkzmwzIZpdurttCylEtvr4IIKMhfm3xNomxlbGlbx31hJCFmHZGgmNB772wCiakyt7kSkcb8IhrI+Ab5EOo9ahY22cnKc3eSA1kKCIKoWbFlGoTCVLeeK84/oajI0z2YCbk5fqHZBFrzbPe+G9Iy4DlUJRHe/pKRwZ4fonE8rsSbMgaFsOpPIRwW2UMe84HWUytZRgE=";
-  const tokenB = "04AAAAAGhlZfsADD0aMGtnkLsMtdqWYQCsQgqYFP1Dj37T7YPmmmvcwQ2S+3gdjEiNdcVU+/ozxG4OTnNeL8YOzm+g+sAFqyj3vBFdjdITnqPetKNQiAbG6zKTqM55fkgxtg7YUMDwI0qeuiaQShDX5y2qN7xDE8bU3EIb+gRNZ+3rks068JoK+M4S3UKu9/WbRwp7/wwNRRDXkfOltTg7FT3Zfrfvno44uCZKmdcR0QNdxMRgX2YeRVRLzDgpTVmxJ98MnAE=";
+  const tokenA = "04AAAAAGhpKwEADDsAdZLeW7YkRAPV7gCvI4EhESX60meew7ft1ZLpOPLTF98nSv6ASZHvrpX1O0fNN9xFuzSx2Pd9TQffMlf0SbhR4dbLETljmnrNbh+qPsXwkjv6VrKFW0YMY1FH3PiYbdVEnz7F5v/o9CIxZERu1f7/7lmQuo6wgzHgfvXkTnrNnt+1WvF3qzUZILzalYHKCGZVRvdE8V4/GpI1SSufhvXxpnyxvJg1XdkaDVQxYVYynLFyMB2e/s8K55AWfgE=";
+  const tokenB = "04AAAAAGhpKxYADPtvsF3y+chSGr7e/QCsWruPcqLU16kB3XUi8eT4FwQIIagR+t4heH8cHj5KQadMf3vyuGTsKuJnULKtIeQaGqonz1T+XdL5UAQO38HotO5AizyR06RtausRfnYICBZwABbDpI5evHMuhOHvyMrvq0TR04jJ+tGrmtpdJezbr6GcLEe+MuNKIQbyeZ5T8yG1dAQn9c7JUPkp9hjjsDC9Fi8RyKMOjWjJKCIj/5RvccYBW1k5Vkp+FXSGZwE=";
 
   useEffect(() => {
     const instance = ZIM.create(appId);
@@ -179,7 +179,7 @@ function App() {
           </div>
 
           {replyTo && (
-            <div className="bg-yellow-200 text-sm px-3 py-1 text-black flex justify-between items-center">
+            <div className="bg-white-200 text-sm px-3 py-1 text-black flex justify-between items-center">
               <div>
                 Replying to <strong>{replyTo.sender}</strong>: {replyTo.message.slice(0, 30)}...
               </div>
