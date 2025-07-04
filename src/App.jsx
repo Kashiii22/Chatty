@@ -66,18 +66,23 @@ function App() {
     }
   }, [messages]);
 
-  const handleLogin = () => {
-    setMessages([]);
-    const info = { userID: selectedUser, userName: selectedUser };
-    setUserInfo(info);
-    const loginToken = selectedUser === "Kashish" ? tokenA : tokenB;
+const handleLogin = () => {
+  setMessages([]);
+  setReplyTo(null);
+  setReadReceipts({});
+  setMessageText("");
 
-    if (zimInstance) {
-      zimInstance.login(info, loginToken)
-        .then(() => setIsLoggedIn(true))
-        .catch(console.error);
-    }
-  };
+  const info = { userID: selectedUser, userName: selectedUser };
+  setUserInfo(info);
+  const loginToken = selectedUser === "Kashish" ? tokenA : tokenB;
+
+  if (zimInstance) {
+    zimInstance.login(info, loginToken)
+      .then(() => setIsLoggedIn(true))
+      .catch(console.error);
+  }
+};
+
 
   const handleSendMessage = () => {
     if (!isLoggedIn || !messageText.trim()) return;
@@ -146,7 +151,16 @@ function App() {
               const tickIcon = status === "Read" ? "✓✓" : "✓";
 
               return (
-                <div key={index} className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={index}
+                  className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
+                  onDoubleClick={() =>
+                    setReplyTo({
+                      sender: msg.senderUserID === userInfo.userID ? "You" : "Kashish",
+                      message: msg.message
+                    })
+                  }
+                >
                   <div className={`relative px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${isOwnMessage ? "bg-blue-500 rounded-br-none" : "bg-gray-600 rounded-bl-none"}`}>
                     {data.replyTo && (
                       <div className="text-xs text-gray-300 border-l-2 pl-2 mb-1 italic">
