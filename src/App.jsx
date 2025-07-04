@@ -17,8 +17,8 @@ function App() {
   const typingTimeout = useRef(null);
 
   const appId = 48774116;
-  const tokenA = "04AAAAAGhpKwEADDsAdZLeW7YkRAPV7gCvI4EhESX60meew7ft1ZLpOPLTF98nSv6ASZHvrpX1O0fNN9xFuzSx2Pd9TQffMlf0SbhR4dbLETljmnrNbh+qPsXwkjv6VrKFW0YMY1FH3PiYbdVEnz7F5v/o9CIxZERu1f7/7lmQuo6wgzHgfvXkTnrNnt+1WvF3qzUZILzalYHKCGZVRvdE8V4/GpI1SSufhvXxpnyxvJg1XdkaDVQxYVYynLFyMB2e/s8K55AWfgE=";
-  const tokenB = "04AAAAAGhpKxYADPtvsF3y+chSGr7e/QCsWruPcqLU16kB3XUi8eT4FwQIIagR+t4heH8cHj5KQadMf3vyuGTsKuJnULKtIeQaGqonz1T+XdL5UAQO38HotO5AizyR06RtausRfnYICBZwABbDpI5evHMuhOHvyMrvq0TR04jJ+tGrmtpdJezbr6GcLEe+MuNKIQbyeZ5T8yG1dAQn9c7JUPkp9hjjsDC9Fi8RyKMOjWjJKCIj/5RvccYBW1k5Vkp+FXSGZwE=";
+  const tokenA = "04AAAAAGhpTOsADM9zH02QQcVWhKbyagCvX9xfedLm+EytnjWyLfXeKdUuvC6yZ6evRQkT5lePqyXzMvT9hmaXHx66tshcaR7zxRCZ5xhzY4zBBwChh69OS9fBmODLxju0SM10clU9HQHjiDYXmw7MAzLydledDYbncWhWBatiwAFbv9TLAk9ViHoe5cyRRfZ1Ep9t2zcTRUi011ia5gQ9vT6DHHE8RcFbPImYDdtYBduTeVrVBa2crhszGRsBOOLiVEqSFJr21wE=";
+  const tokenB = "04AAAAAGhpTQoADFkdI5VgeD+3dC3nYQCsLb5R8N5h/zPZWe35NNeYvAD8Fidch4ojWo0T6krym5DhlQJA7fb+2IFA6S+E+gffUA2LrCevbrm4mdcnA0XmBzxTr2H2f4DixWGhdtltLQ+x9X7QlL9uzF2pJuN8QoO21B2UKjOdlwrTu06f0sjWX7ygY5TN7+u5nN+DsvWoaBvLd1FnWzt9P1o7T44GsMADYLEj35TJNVkylrkKryn3Wkq/uCrIOw/7UOhE7gE=";
 
   useEffect(() => {
     const instance = ZIM.create(appId);
@@ -37,7 +37,6 @@ function App() {
           }
         } else {
           setMessages(prev => [...prev, msg]);
-
           const data = msg.extendedData ? JSON.parse(msg.extendedData) : {};
           const customMessageId = data.customMessageId;
 
@@ -55,7 +54,7 @@ function App() {
 
     instance.on("tokenWillExpire", () => {
       const newToken = selectedUser === "Kashish" ? tokenA : tokenB;
-      zim.renewToken(newToken).catch(() => {});
+      instance.renewToken(newToken).catch(() => {});
     });
 
     return () => instance.destroy();
@@ -68,6 +67,7 @@ function App() {
   }, [messages]);
 
   const handleLogin = () => {
+    setMessages([]);
     const info = { userID: selectedUser, userName: selectedUser };
     setUserInfo(info);
     const loginToken = selectedUser === "Kashish" ? tokenA : tokenB;
@@ -81,8 +81,8 @@ function App() {
 
   const handleSendMessage = () => {
     if (!isLoggedIn || !messageText.trim()) return;
-
     const toConversationID = selectedUser === "Kashish" ? "You" : "Kashish";
+
     const customMessageId = `${userInfo.userID}_${Date.now()}`;
     const extendedData = JSON.stringify({ customMessageId, replyTo });
 
@@ -104,45 +104,40 @@ function App() {
 
   const handleTyping = () => {
     if (!zimInstance || !isLoggedIn) return;
-
     const toConversationID = selectedUser === "Kashish" ? "You" : "Kashish";
-    const typingMessage = {
-      type: 1,
-      message: "__typing__",
-      extendedData: ""
-    };
-
+    const typingMessage = { type: 1, message: "__typing__", extendedData: "" };
     zimInstance.sendMessage(typingMessage, toConversationID, 0, { priority: 1 }).catch(() => {});
   };
 
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const handleReply = (msg) => {
-    setReplyTo({ message: msg.message, sender: msg.senderUserID });
-  };
+  const formatTime = (timestamp) =>
+    new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-center p-4" style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center" }}>
+    <div className="w-full h-screen flex flex-col items-center justify-center p-4" style={{
+      backgroundImage: `url(${bg})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center"
+    }}>
       <h1 className="text-white font-bold text-4xl mb-6 drop-shadow-lg">Chatty</h1>
 
       {!isLoggedIn ? (
         <div className="backdrop-blur-md bg-white/10 border border-white/30 text-white p-6 rounded-2xl shadow-xl w-[300px]">
           <h2 className="text-xl font-semibold mb-4 text-center">Login</h2>
           <label className="block mb-2 text-sm">Select User</label>
-          <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full mb-4 p-2 rounded-xl text-black border border-white/30">
+          <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}
+            className="w-full mb-4 p-2 rounded-xl text-black border border-white/30">
             <option value="Kashish">Kashish</option>
             <option value="You">You</option>
           </select>
           <button onClick={handleLogin} className="w-full py-2 px-4 rounded bg-purple-500 hover:bg-purple-600 text-white font-medium">Login</button>
         </div>
       ) : (
-        <div className="bg-white/20 backdrop-blur-lg w-full max-w-md h-[80vh] flex flex-col rounded-xl border border-white/30 shadow-xl">
-          <h2 className="text-white text-lg font-semibold text-center p-2">{userInfo.userName} chatting with {selectedUser === "Kashish" ? "You" : "Kashish"}</h2>
+        <div className="bg-white/20 backdrop-blur-lg w-full max-w-md h-[80vh] flex flex-col rounded-xl border border-white/30 shadow-xl relative">
+          <h2 className="text-white text-lg font-semibold text-center p-2">
+            {userInfo.userName} chatting with {selectedUser === "Kashish" ? "You" : "Kashish"}
+          </h2>
 
-          <div className="flex-1 overflow-y-auto p-4 text-black">
+          <div className="flex-1 overflow-y-auto p-4 text-black relative">
             {messages.map((msg, index) => {
               const isOwnMessage = msg.senderUserID === userInfo.userID;
               const data = msg.extendedData ? JSON.parse(msg.extendedData) : {};
@@ -151,8 +146,8 @@ function App() {
               const tickIcon = status === "Read" ? "✓✓" : "✓";
 
               return (
-                <div key={index} className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`} onDoubleClick={() => handleReply(msg)}>
-                  <div className={`px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${isOwnMessage ? "bg-blue-500 rounded-br-none" : "bg-gray-600 rounded-bl-none"}`}>
+                <div key={index} className={`mb-3 flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+                  <div className={`relative px-4 py-2 rounded-xl max-w-[75%] text-white shadow-md ${isOwnMessage ? "bg-blue-500 rounded-br-none" : "bg-gray-600 rounded-bl-none"}`}>
                     {data.replyTo && (
                       <div className="text-xs text-gray-300 border-l-2 pl-2 mb-1 italic">
                         Reply to {data.replyTo.sender}: {data.replyTo.message.slice(0, 30)}...
@@ -179,10 +174,8 @@ function App() {
           </div>
 
           {replyTo && (
-            <div className="bg-white-200 text-sm px-3 py-1 text-black flex justify-between items-center">
-              <div>
-                Replying to <strong>{replyTo.sender}</strong>: {replyTo.message.slice(0, 30)}...
-              </div>
+            <div className="bg-white text-sm px-3 py-1 text-black flex justify-between items-center">
+              <div>Replying to <strong>{replyTo.sender}</strong>: {replyTo.message.slice(0, 30)}...</div>
               <button className="text-red-500 font-bold ml-2" onClick={() => setReplyTo(null)}>x</button>
             </div>
           )}
