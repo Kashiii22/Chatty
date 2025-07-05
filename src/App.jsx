@@ -17,8 +17,8 @@ function App() {
   const typingTimeout = useRef(null);
 
   const appId = 48774116;
-  const tokenA = "04AAAAAGhpTOsADM9zH02QQcVWhKbyagCvX9xfedLm+EytnjWyLfXeKdUuvC6yZ6evRQkT5lePqyXzMvT9hmaXHx66tshcaR7zxRCZ5xhzY4zBBwChh69OS9fBmODLxju0SM10clU9HQHjiDYXmw7MAzLydledDYbncWhWBatiwAFbv9TLAk9ViHoe5cyRRfZ1Ep9t2zcTRUi011ia5gQ9vT6DHHE8RcFbPImYDdtYBduTeVrVBa2crhszGRsBOOLiVEqSFJr21wE=";
-  const tokenB = "04AAAAAGhpTQoADFkdI5VgeD+3dC3nYQCsLb5R8N5h/zPZWe35NNeYvAD8Fidch4ojWo0T6krym5DhlQJA7fb+2IFA6S+E+gffUA2LrCevbrm4mdcnA0XmBzxTr2H2f4DixWGhdtltLQ+x9X7QlL9uzF2pJuN8QoO21B2UKjOdlwrTu06f0sjWX7ygY5TN7+u5nN+DsvWoaBvLd1FnWzt9P1o7T44GsMADYLEj35TJNVkylrkKryn3Wkq/uCrIOw/7UOhE7gE=";
+  const tokenA = "04AAAAAGhqm5YADBiMLBYUFhkX+8GGBACv59sEJpi1GYRNUaB3+WR6wSZBFBEWoUOJ+rGHpTxo/2Ehe2kIaaFohRg6wL8nJ5NAfq9UbSfeBm/oo4D5kl930ONF5RGvwvwL041aD+ezbjAjUNUF0mBx+jNJguUXa2HSqij91YGAoZpqVxWqb/3DfMqYU8mZ8gfJc3MsKUia9QCqttWa5f2z5zl88zgHiM7Y4iExAOIq2vMtQ6V/BX526qUla3eOtDlW1v174SdWsgE=";
+  const tokenB = "04AAAAAGhqm7EADMhl+nJPs+DlHdSvLgCroT2AbQgDGjTS0ae8r0vilOFnNjYVyrYMP/yd4nR9NBEHHi/xkMNLVG19/YCUtrGR2ALpYu7JHS25svviR0Eu4JonCpe1BX71R8GF6pLSYtpczF5JFzWQaUViWDAy6dfEcoZOZ6UQPPfq/XrvuhInuGS3qIQsxnb/nhwm/ZIMS9HydiGFlF6dPJY4wWysxwdyeKXdo9FfLGRIuhNVSo3GDN3wkPHlfUcxxkV6AQ==";
 
   useEffect(() => {
     const instance = ZIM.create(appId);
